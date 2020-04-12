@@ -3,6 +3,9 @@ import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import IconButton from '@material-ui/core/IconButton';
+import DeleteIcon from '@material-ui/icons/Delete';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
@@ -17,7 +20,8 @@ class Main extends Component {
         super(props);
         this.state = {
             tasks: [],
-            text: ''
+            text: '',
+            id:''
         }
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -36,20 +40,30 @@ class Main extends Component {
     }
     handleSubmit(event) {
         const task = {
-            text:this.state.text
+            text: this.state.text
         }
-        axios.post('http://localhost:4000/tasks',task)
+        axios.post('http://localhost:4000/tasks', task)
             .then(res => {
                 this.setState({
-                    text:'',
-                    tasks:[...this.state.tasks,res.data]
+                    text: '',
+                    tasks: [...this.state.tasks, res.data]
                 })
             })
             .catch(err => {
                 console.log(err);
             });
-            //this.state.text = '';
-            event.preventDefault();
+        event.preventDefault();
+    }
+    deleteTask(e,task){
+        axios.delete(`http://localhost:4000/tasks/${task.id}`)
+        .then(res => {
+            this.setState(previousState => {
+                return {
+                    tasks:previousState.tasks.filter(q => q.id !== task.id)
+                }
+            })
+        })
+        e.preventDefault();
     }
     render() {
         return (
@@ -64,31 +78,36 @@ class Main extends Component {
                     <Grid>
                         <List className="root">
                             {
-                                this.state.tasks.map((task,i) =>
-                                        <ListItem alignItems="center" key={i}>
-                                            <ListItemAvatar>
-                                                <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                secondary={
-                                                    <React.Fragment>
-                                                        <Typography
-                                                            component="span"
-                                                            variant="body2"
-                                                            className="inline"
-                                                            color="textPrimary">
-                                                            {task.text}
-                                                        </Typography>
-                                                    </React.Fragment>
-                                                }
-                                            />
-                                        </ListItem>
+                                this.state.tasks.map((task, i) =>
+                                    <ListItem alignItems="center" key={i}>
+                                        <ListItemAvatar>
+                                            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+                                        </ListItemAvatar>
+                                        <ListItemText
+                                            secondary={
+                                                <React.Fragment>
+                                                    <Typography
+                                                        component="span"
+                                                        variant="body2"
+                                                        className="inline"
+                                                        color="textPrimary">
+                                                        {task.text}
+                                                    </Typography>
+                                                </React.Fragment>
+                                            }
+                                        />
+                                        <ListItemSecondaryAction>
+                                            <IconButton onClick={e=>this.deleteTask(e,task)} edge="end" aria-label="delete">
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </ListItemSecondaryAction>
+                                    </ListItem>
                                 )
                             }
                         </List>
                         <form onSubmit={this.handleSubmit} id="taskForm">
                             <Box mb={4}>
-                            <Typography variant="h6" >
+                                <Typography variant="h6" >
                                     TASK ADD
                             </Typography>
                             </Box>
